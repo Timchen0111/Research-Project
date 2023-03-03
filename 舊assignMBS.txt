@@ -1,0 +1,67 @@
+function MBS  = assignMBS(g,UE,tgNB_num,bw,multi)
+%disp("------ASSIGN MBS------")
+empty = true;
+UE_num = size(g(tgNB_num).MBS,1);
+for i = 1:UE_num
+    cost(i) = inf;
+    check(i) = true;
+    if multi == false
+        if sum(g(tgNB_num).MBS(i)) ~= 0
+            %disp('Value existed')
+            %disp(g(tgNB_num).MBS(i))
+            %disp(i)
+            cost(i) = 0;
+            empty = false;
+            record = i;
+            %disp('Worst SINR')
+            %disp(g(tgNB_num).worstSINR(i))
+            if UE.SINR<g(tgNB_num).worstSINR(i)
+                worst = UE.SINR;
+            else 
+                worst = g(tgNB_num).worstSINR(i);
+            end
+            r = rate(10^(worst),bw);
+            cost(i) = 1/r;
+        else
+            check(i) = false;
+        end
+    else
+        if UE.SINR<g(tgNB_num).worstSINR(i)
+            worst = UE.SINR;
+        else 
+            worst = g(tgNB_num).worstSINR(i);
+        end
+        r = rate(10^(worst),bw);
+        cost(i) = 1/r;
+    end
+end
+if multi == false
+    if empty == true
+        MBS = randi([1,UE_num]);
+        %disp("RANDOM ASSIGN")
+    else
+        chosen = min(cost);
+        if chosen == inf
+           MBS = record;
+        else
+            for i=1:UE_num
+                if cost(i) == chosen
+                    MBS = i;
+                end
+            end
+        end
+    end
+else
+    chosen = min(cost);
+    if chosen == inf
+        MBS = randi([1,UE_num]);
+    else
+        for i=1:UE_num
+            if cost(i) == chosen
+                MBS = i;
+            end
+        end
+    end
+end
+
+
